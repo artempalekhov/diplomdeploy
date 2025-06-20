@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookLamp - Ваш персональный книжный кинотеатр</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;500;600&display=swap">
+    <style>
+        :root {
+            --dark: #0f0f12;
+            --darker: #09090b;
+            --accent: #ff5e57;
+            --accent-light: #ff8a87;
+            --text: #f5f5f7;
+            --text-secondary: #b0b0b9;
+            --glass: rgba(25, 25, 30, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--dark);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .background-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(var(--darker), var(--dark));
+        }
+        
+        .blurred-cover {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(80px) brightness(0.3);
+            opacity: 0;
+            transition: opacity 1.5s ease, background-image 0.1s ease;
+            z-index: -1;
+        }
+        
+        .blurred-cover.active {
+            opacity: 0.4;
+        }
+        
+        .blurred-cover.fade-out {
+            opacity: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .genre-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .genre-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            padding: 10px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            backdrop-filter: blur(5px);
+        }
+        
+        .genre-btn:hover {
+            background: rgba(255, 94, 87, 0.2);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .genre-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .book-display {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            align-items: flex-start;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .book-display.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .book-cover-container {
+            flex: 0 0 300px;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            background: var(--darker);
+            aspect-ratio: 2/3;
+        }
+        
+        .book-cover {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .book-cover.loaded {
+            opacity: 1;
+        }
+        
+        .book-info {
+            flex: 1;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.5s ease 0.3s;
+        }
+        
+        .book-info.active {
+            opacity: 1;
+        }
+        
+        .book-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .book-author {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .book-genre {
+            display: inline-block;
+            background: rgba(255, 94, 87, 0.2);
+            color: var(--accent);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        
+        .book-description {
+            line-height: 1.8;
+            margin-bottom: 30px;
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+        }
+        
+        .book-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+        
+        .primary-btn {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            border: 1px solid var(--glass-border);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Стиль для SVG иконки после добавления книги */
+        .action-btn svg.icon-yellow {
+            fill: #FFD700; /* Ярко-желтый цвет (Gold) */
+            /* или используйте ваш --accent, если хотите акцентный цвет:
+            fill: var(--accent); 
+            */
+        }
+        
+        .loading-indicator {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        .user-menu {
+            position: relative;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        
+        .user-menu-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-menu-btn:hover {
+            background: rgba(255, 94, 87, 0.3);
+        }
+        
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+            backdrop-filter: blur(10px);
+        }
+        
+        .user-dropdown a {
+            color: var(--text);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: 0.3s;
+        }
+        
+        .user-dropdown a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent);
+        }
+        
+        .user-menu:hover .user-dropdown {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .book-display {
+                flex-direction: column;
+            }
+            
+            .book-cover-container {
+                flex: 0 0 auto;
+                width: 200px;
+                margin: 0 auto;
+            }
+            
+            .book-title {
+                font-size: 1.8rem;
+                text-align: center;
+            }
+            
+            .book-author {
+                text-align: center;
+            }
+            
+            .book-genre {
+                margin: 0 auto 25px;
+                display: table;
+            }
+            
+            .book-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-layer"></div>
+    <div class="blurred-cover" id="blurredCover"></div>
+    <div class="blurred-cover" id="blurredCoverNew" style="opacity: 0; z-index: -1;"></div>
+    
+    <div class="container">
+        <header>
+            <h1>BookLamp</h1>
+            <p class="subtitle">Ваш персональный книжный кинотеатр с рекомендациями на вечер</p>
+            <div class="user-menu">
+                <button id="userMenuBtn" class="user-menu-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                    </svg>
+                </button>
+                <div id="userDropdown" class="user-dropdown">
+                    <a href="#" id="favoritesLink">Избранное</a>
+                    <a href="#" id="readLink">Прочитано</a>
+                    <a href="#" id="logoutLink">Выйти</a>
+                </div>
+            </div>
+        </header>
+        
+        <div class="genre-selector">
+            <button class="genre-btn active" data-genre="Фантастика">Фантастика</button>
+            <button class="genre-btn" data-genre="Детектив">Детектив</button>
+            <button class="genre-btn" data-genre="Роман">Роман</button>
+            <button class="genre-btn" data-genre="Ужасы">Ужасы</button>
+            <button class="genre-btn" data-genre="Фэнтези">Фэнтези</button>
+            <button class="genre-btn" data-genre="триллер">Триллер</button>
+            <button class="genre-btn" data-genre="Биография">Биография</button>
+            <button class="genre-btn" data-genre="История">История</button>
+            <button class="genre-btn" data-genre="Наука">Наука</button>
+            <button class="genre-btn" data-genre="Поэзия">Поэзия</button>
+            <button class="genre-btn" data-genre="Драма">Драма</button>
+            <button class="genre-btn" data-genre="Комедия">Комедия</button>
+            <button class="genre-btn" data-genre="Приключения">Приключения</button>
+            <button class="genre-btn" data-genre="Детские">Детские</button>
+        </div>
+        
+        <div id="loadingIndicator" class="loading-indicator">
+            Генерация книги, подождите пожалуйста...
+        </div>
+        
+        <div id="bookDisplay" class="book-display">
+            <div class="book-cover-container">
+                <img src="" alt="Обложка книги" class="book-cover" id="bookCover">
+            </div>
+            
+            <div class="book-info" id="bookInfo">
+                <h2 class="book-title" id="bookTitle">Название книги</h2>
+                <p class="book-author" id="bookAuthor">Автор книги</p>
+                <span class="book-genre" id="bookGenre">Жанр</span>
+                <p class="book-description" id="bookDescription">Описание книги будет здесь. Это краткое описание сюжета и основных моментов, которые могут заинтересовать читателя.</p>
+                
+                <div class="book-actions">
+                    <button class="action-btn primary-btn" id="regenerateBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                        <span class="btn-text">Другая книга</span>
+                    </button>
+                    <button class="action-btn secondary-btn" id="addToFavoriteBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/>
+                        </svg>
+                        <span class="btn-text">В избранное</span>
+                    </button>
+                    <button class="action-btn secondary-btn" id="addToReadBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M2 1a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l4.586-4.586a1 1 0 0 0 0-1.414l-7-7A1 1 0 0 0 6.586 1H2zm4 3.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                        </svg>
+                        <span class="btn-text">Прочитано</span>
+                    </button>
+                    <button class="action-btn secondary-btn" id="detailsBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M6 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm-1 0a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0z"/>
+                            <path d="M2 1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 1 6.586V2a1 1 0 0 1 1-1zm0 5.586 7 7L13.586 9l-7-7H2v4.586z"/>
+                        </svg>
+                        <span class="btn-text">Подробнее</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+    // Элементы интерфейса
+    const genreBtns = document.querySelectorAll('.genre-btn');
+    const bookDisplay = document.getElementById('bookDisplay');
+    const bookCover = document.getElementById('bookCover');
+    const bookInfo = document.getElementById('bookInfo');
+    const blurredCover = document.getElementById('blurredCover');
+    const blurredCoverNew = document.getElementById('blurredCoverNew');
+    const regenerateBtn = document.getElementById('regenerateBtn');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userDropdown = document.getElementById('userDropdown');
+    const favoritesLink = document.getElementById('favoritesLink');
+    const readLink = document.getElementById('readLink');
+    const logoutLink = document.getElementById('logoutLink');    
+    const favoriteBtn = document.getElementById('addToFavoriteBtn'); // Используем ID
+    const readBtn = document.getElementById('addToReadBtn');       // Используем ID
+    const detailsBtn = document.getElementById('detailsBtn');       // Используем ID
+    
+    // Состояние приложения
+    let currentGenre = 'Фантастика';
+    let isLoading = false;
+    let currentBook = null;
+    
+    // Инициализация
+    setupEventListeners();
+    showRandomBook(currentGenre);
+    
+    function setupEventListeners() {
+        // Обработчики для кнопок жанров
+        genreBtns.forEach(btn => {
+            btn.addEventListener('click', async function() {
+                if (isLoading) return;
+                
+                genreBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentGenre = this.dataset.genre;
+                await showRandomBook(currentGenre);
+            });
+        });
+        
+        // Кнопка "Другая книга"
+        regenerateBtn.addEventListener('click', async function() {
+            if (isLoading) return;
+            await showRandomBook(currentGenre);
+        });
+        
+        // Кнопка "В избранное"
+        favoriteBtn.addEventListener('click', function(event) { handleAddToFavorites(event); });
+        
+        // Кнопка "Прочитано"
+        readBtn.addEventListener('click', function(event) { handleAddToRead(event); });
+
+        // Кнопка "Подробнее" (если она у вас есть и может вызывать нежелательное поведение, можно также обернуть)
+        
+        // Кнопка "Подробнее"
+        detailsBtn.addEventListener('click', handleDetails);
+        
+        // Меню пользователя
+        userMenuBtn.addEventListener('click', toggleUserDropdown);
+        favoritesLink.addEventListener('click', handleFavoritesLink);
+        readLink.addEventListener('click', handleReadLink);
+        logoutLink.addEventListener('click', handleLogout);
+        
+        // Закрытие dropdown при клике вне его
+        document.addEventListener('click', function(event) {
+            if (!userMenuBtn.contains(event.target)) {
+                userDropdown.style.display = 'none';
+            }
+        });
+    }
+    
+    // Функция для показа случайной книги
+    async function showRandomBook(genre) {
+        if (isLoading) return;
+        isLoading = true;
+        
+        try {
+            // Скрываем текущую информацию
+            resetBookDisplay();
+            loadingIndicator.style.display = 'block';
+            
+            // Плавное исчезновение фона
+            blurredCover.classList.add('fade-out');
+            
+            // Загружаем случайную книгу
+            const book = await fetchBook(genre);
+            currentBook = book;
+            
+            // Обновляем фон
+            await updateBackground(book.imgLink);
+            
+            // Обновляем данные книги
+            updateBookInfo(book, genre);
+            
+            // Загружаем обложку
+            loadBookCover(book.imgLink);
+            
+        } catch (error) {
+            console.error('Ошибка:', error);
+            loadingIndicator.style.display = 'none';
+            alert('Не удалось получить книгу. Попробуйте снова.');
+            blurredCover.classList.remove('fade-out');
+        } finally {
+            isLoading = false;
+        }
+    }
+    
+    function resetBookDisplay() {
+        bookDisplay.classList.remove('active');
+        bookCover.classList.remove('loaded');
+        bookInfo.classList.remove('active');
+        resetActionButtonsState(); // Сбрасываем состояние кнопок "В избранное" и "Прочитано"
+    }
+    
+    async function fetchBook(genre) {
+        const response = await fetch(`https://booklamp.onrender.com/random_book?genre=${genre}`);
+        if (!response.ok) throw new Error('Ошибка загрузки');
+        
+        const book = await response.json();
+        book.description = formatDescription(book.description);
+        return book;
+    }
+    
+    async function updateBackground(imgLink) {
+        if (!imgLink) return;
+        
+        blurredCoverNew.style.backgroundImage = `url(${imgLink})`;
+        
+        await new Promise((resolve) => {
+            const img = new Image();
+            img.src = imgLink;
+            img.onload = resolve;
+            img.onerror = resolve;
+        });
+        
+        blurredCoverNew.style.opacity = '0.8';
+        setTimeout(() => {
+            blurredCover.style.backgroundImage = blurredCoverNew.style.backgroundImage;
+            blurredCover.style.opacity = '0.8';
+            blurredCover.classList.remove('fade-out');
+            blurredCoverNew.style.opacity = '0';
+        }, 300);
+    }
+    
+    function updateBookInfo(book, genre) {
+        document.getElementById('bookTitle').textContent = book.title || "Без названия";
+        document.getElementById('bookAuthor').textContent = book.author || "Автор неизвестен";
+        document.getElementById('bookGenre').textContent = genre;
+        document.getElementById('bookDescription').textContent = book.description;
+    }
+    
+    function loadBookCover(imgLink) {
+        if (imgLink) {
+            const coverImg = new Image();
+            coverImg.src = imgLink;
+            coverImg.onload = function() {
+                bookCover.src = imgLink;
+                bookCover.classList.add('loaded');
+                bookDisplay.classList.add('active');
+                loadingIndicator.style.display = 'none';
+                setTimeout(() => bookInfo.classList.add('active'), 300);
+            };
+            coverImg.onerror = function() {
+                bookCover.src = '';
+                bookDisplay.classList.add('active');
+                loadingIndicator.style.display = 'none';
+                bookInfo.classList.add('active');
+            };
+        } else {
+            bookCover.src = '';
+            bookDisplay.classList.add('active');
+            loadingIndicator.style.display = 'none';
+            bookInfo.classList.add('active');
+        }
+    }
+    
+    // Функция для форматирования описания
+    function formatDescription(text) {
+        if (!text) return "Описание отсутствует";
+        
+        // Находим первую точку после 20 слов
+        const words = text.split(' ');
+        if (words.length <= 30) return text;
+        
+        for (let i = 20; i < words.length; i++) {
+            if (words[i].endsWith('.')) {
+                return words.slice(0, i+1).join(' ');
+            }
+        }
+        
+        return text;
+    }
+    
+    // Функция для сброса состояния кнопок "В избранное" и "Прочитано"
+    function resetActionButtonsState() {
+        if (favoriteBtn) {
+            // favoriteBtn.querySelector('.btn-text').textContent = 'В избранное'; // Текст больше не меняем
+            favoriteBtn.querySelector('svg').classList.remove('icon-yellow');
+            // favoriteBtn.disabled = false; // Кнопки больше не отключаются
+        }
+        if (readBtn) {
+            // readBtn.querySelector('.btn-text').textContent = 'Прочитано'; // Текст больше не меняем
+            readBtn.querySelector('svg').classList.remove('icon-yellow');
+            // readBtn.disabled = false; // Кнопки больше не отключаются
+        }
+    }
+
+    // Обработчики для кнопок книг
+    async function handleAddToFavorites(event) {
+        if (!currentBook) return;
+        if (event) event.preventDefault(); // Предотвращаем действие по умолчанию
+        
+        try {
+            // Используем полный URL
+            const response = await fetch('https://booklamp.onrender.com/add_favorite', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: currentBook.title,
+                    author: currentBook.author,
+                    genre: currentBook.genre,
+                    img_link: currentBook.imgLink,
+                    url: currentBook.url
+                }),
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                favoriteBtn.querySelector('svg').classList.add('icon-yellow');
+                // Кнопка остается активной, текст не меняется
+            } else {
+                // Улучшенная обработка ошибок
+                if (response.status === 401) {
+                    alert('Пожалуйста, войдите в систему, чтобы добавить книгу в избранное.');
+                    window.location.href = 'login.html'; // Перенаправляем на страницу входа
+                } else {
+                    const errorData = await response.json().catch(() => ({ detail: 'Не удалось получить детали ошибки.' }));
+                    alert(`Ошибка при добавлении в избранное: ${errorData.detail || response.statusText}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Сетевая ошибка или не удалось связаться с сервером при добавлении в избранное.');
+        }
+    }
+    
+    async function handleAddToRead(event) {
+        if (!currentBook) return;
+        if (event) event.preventDefault(); // Предотвращаем действие по умолчанию
+        
+        try {
+            // Используем полный URL
+            const response = await fetch('https://booklamp.onrender.com/add_read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: currentBook.title,
+                    author: currentBook.author,
+                    genre: currentBook.genre,
+                    img_link: currentBook.imgLink,
+                    url: currentBook.url
+                }),
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                readBtn.querySelector('svg').classList.add('icon-yellow');
+                // Кнопка остается активной, текст не меняется
+            } else {
+                // Улучшенная обработка ошибок
+                if (response.status === 401) {
+                    alert('Пожалуйста, войдите в систему, чтобы добавить книгу в прочитанные.');
+                    window.location.href = 'login.html'; // Перенаправляем на страницу входа
+                } else {
+                    const errorData = await response.json().catch(() => ({ detail: 'Не удалось получить детали ошибки.' }));
+                    alert(`Ошибка при добавлении в прочитанные: ${errorData.detail || response.statusText}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Сетевая ошибка или не удалось связаться с сервером при добавлении в прочитанные.');
+        }
+    }
+    
+    function handleDetails() {
+        if (currentBook?.url) {
+            window.open(currentBook.url, '_blank');
+        }
+    }
+    
+    // Обработчики для меню пользователя
+    function toggleUserDropdown(e) {
+        e.stopPropagation();
+        const isDisplayed = userDropdown.style.display === 'block';
+        userDropdown.style.display = isDisplayed ? 'none' : 'block';
+    }
+    
+    function handleFavoritesLink(e) {
+        e.preventDefault();
+        window.location.href = 'favorites.html'; // Переход на страницу избранного
+    }
+    
+    function handleReadLink(e) {
+        e.preventDefault();
+        window.location.href = 'read.html'; // Переход на страницу прочитанного
+    }
+    
+    async function handleLogout(e) {
+        e.preventDefault();
+        try {
+            // Используем полный URL, если FastAPI и фронтенд на разных портах во время разработки
+            // или если есть сомнения в относительных путях.
+            // Если они на одном домене/порту, '/logout' тоже должен работать.
+            const response = await fetch('https://booklamp.onrender.com/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                alert('Вы успешно вышли из системы.');
+                window.location.href = 'login.html'; // Перенаправление на страницу входа
+            } else {
+                const errorData = await response.json().catch(() => ({ detail: 'Ошибка выхода.' }));
+                alert(errorData.detail || 'Ошибка выхода. Попробуйте снова.');
+            }
+        } catch (error) {
+            console.error('Ошибка выхода:', error);
+            alert('Не удалось выполнить выход. Проверьте подключение к сети.');
+        }
+    }
+});
+    </script>
+</body>
+</html>
