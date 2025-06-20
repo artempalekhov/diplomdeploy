@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прочитанные книги</title> <!-- Заголовок страницы, отображаемый во вкладке браузера -->
+    <link rel="stylesheet" href="style.css"> <!-- Подключение основного файла стилей -->
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"> <!-- Подключение шрифтов с Google Fonts -->
+</head>
+<body>
+    <div class="container container--wide"> <!-- Основной контейнер для контента страницы, с модификатором для большей ширины -->
+        <h1>Мои прочитанные книги</h1> <!-- Главный заголовок страницы -->
+        <div id="readList" class="books-grid"> <!-- Контейнер, в который будут загружаться карточки прочитанных книг, стилизован как сетка -->
+            <!-- Книги будут загружены сюда --> <!-- Комментарий-плейсхолдер для разработчика -->
+        </div>
+        <div class="page-actions"> <!-- Контейнер для кнопок действий на странице -->
+            <button class="btn" onclick="window.location.href='main.html'">На главную</button> <!-- Кнопка для возврата на главную страницу (main.html) -->
+        </div>
+    </div>
+
+    <script>
+        // Функция для создания и добавления HTML-элемента карточки книги в указанный список
+        function renderBook(book, listElement) {
+            const bookCard = document.createElement('div'); // Создаем новый div элемент для карточки книги
+            bookCard.className = 'book-card'; // Присваиваем класс для стилизации
+            bookCard.setAttribute('data-item-id', book.id); // Устанавливаем data-атрибут с ID книги для идентификации
+
+            // Заполняем HTML-содержимое карточки книги, используя шаблонные строки
+            // Используем данные из объекта 'book'
+            // Если book.book_img_link отсутствует, используется изображение-заглушка
+            // Аналогично для автора и жанра, если они не указаны
+            bookCard.innerHTML = `
+                <img src="${book.book_img_link || 'https://via.placeholder.com/100x150.png?text=No+Cover'}" alt="Обложка: ${book.book_title}" class="book-card-cover">
+                <div class="book-card-info">
+                    <h3>${book.book_title}</h3>
+                    <p>Автор: ${book.book_author || 'Неизвестен'}</p>
+                    <p>Жанр: ${book.book_genre || 'Не указан'}</p>
+                </div>
+                <div class="book-card-actions">
+                    <a href="${book.book_url}" target="_blank" class="btn-details">Подробнее</a>
+                    <button class="btn-remove" data-id="${book.id}">Убрать из прочитанного</button>
+                </div>
+            `;
+            listElement.appendChild(bookCard); // Добавляем созданную карточку в родительский элемент списка
+
+            // Находим кнопку "Убрать из прочитанного" внутри созданной карточки и добавляем ей обработчик клика
+            bookCard.querySelector('.btn-remove').addEventListener('click', async (event) => {
+                const itemId = event.target.dataset.id; // Получаем ID книги из data-атрибута кнопки
+                await handleRemoveRead(itemId, bookCard); // Вызываем функцию для удаления книги из прочитанного
+            });
+        }
+
+        // Асинхронная функция для обработки удаления книги из списка прочитанного
+        async function handleRemoveRead(itemId, cardElement) {
+            // Запрашиваем подтверждение у пользователя перед удалением
+            if (!confirm('Вы уверены, что хотите убрать эту книгу из прочитанного?')) return; // Если пользователь отменил, выходим из функции
+
+            try {
+                // Отправляем DELETE-запрос на сервер для удаления книги из прочитанного
+                const response = await fetch(`http://127.0.0.1:8000/remove_read/${itemId}`, {
+                    method: 'DELETE', // HTTP-метод
+                    credentials: 'include' // Включаем передачу cookie для аутентификации
+                });
+                if (response.ok) { // Если запрос успешен (статус 2xx)
+                    cardElement.remove(); // Удаляем HTML-элемент карточки книги со страницы
+                    // alert('Книга убрана из прочитанного.'); // Комментарий: alert убран для лучшего UX
+                    const readList = document.getElementById('readList'); // Получаем элемент списка прочитанных книг
+                    // Если после удаления список пуст, показываем сообщение "У вас пока нет прочитанных книг."
+                    if (readList.childElementCount === 0) {
+                        readList.innerHTML = '<p class="no-books-message">У вас пока нет прочитанных книг.</p>';
+                    }
+                } else { // Если сервер вернул ошибку
+                    const errorData = await response.json().catch(() => ({ detail: 'Ошибка удаления' })); // Пытаемся получить детали ошибки из JSON
+                    console.error(`Не удалось убрать книгу: ${errorData.detail || response.statusText}`); // Выводим ошибку в консоль
+                    // alert(`Не удалось убрать книгу: ${errorData.detail || response.statusText}`); // Комментарий: alert убран
+                }
+            } catch (error) { // Обработка ошибок сети или других ошибок при выполнении fetch
+                console.error('Ошибка при удалении из прочитанного:', error);
+                // alert('Сетевая ошибка или не удалось связаться с сервером.'); // Комментарий: alert убран
+            }
+        }
+
+        // Добавляем обработчик события, который сработает после полной загрузки HTML-документа
+        document.addEventListener('DOMContentLoaded', async () => {
+            const readList = document.getElementById('readList'); // Получаем элемент, в который будут добавляться книги
+
+            try {
+                // Отправляем GET-запрос на сервер для получения списка прочитанных книг
+                const response = await fetch('http://127.0.0.1:8000/get_read', { method: 'GET', credentials: 'include' });
+                // Если пользователь не авторизован (статус 401), перенаправляем на страницу входа
+                if (response.status === 401) { window.location.href = 'login.html'; return; }
+                // Если ответ сервера не успешный (не 2xx и не 401), выбрасываем ошибку с деталями из ответа
+                if (!response.ok) throw new Error((await response.json()).detail || 'Не удалось загрузить прочитанные книги');
+                
+                const books = await response.json(); // Парсим JSON-ответ со списком книг
+                if (books.length === 0) { // Если список книг пуст
+                    readList.innerHTML = '<p class="no-books-message">У вас пока нет прочитанных книг.</p>'; // Показываем сообщение
+                } else { // Если книги есть
+                    books.forEach(book => renderBook(book, readList)); // Для каждой книги вызываем функцию renderBook для ее отображения
+                }
+            } catch (error) { // Обработка ошибок, возникших при загрузке или отображении книг
+                console.error('Ошибка:', error); // Выводим ошибку в консоль
+                // Показываем сообщение об ошибке загрузки на странице
+                readList.innerHTML = `<p class="no-books-message">Ошибка загрузки прочитанного: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

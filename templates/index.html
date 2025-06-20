@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru"> <!-- Установка языка документа на русский -->
+<head>
+    <meta charset="UTF-8"> <!-- Установка кодировки символов документа на UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Настройка области просмотра для адаптивного дизайна -->
+    <title>Регистрация</title> <!-- Заголовок страницы, отображаемый во вкладке браузера -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;500;600&display=swap"> <!-- Подключение внешних шрифтов с Google Fonts -->
+    <link rel="stylesheet" href="style.css"> <!-- Подключение основного файла стилей -->
+</head>
+<body>
+    <div class="background-layer"></div> <!-- Слой для основного фона страницы -->
+    <div class="blurred-cover" id="blurredCover"></div> <!-- Слой для размытого фонового изображения (если используется на этой странице) -->
+    
+    <div class="container"> <!-- Контейнер для центрирования основного контента -->
+        <h1>Регистрация</h1> <!-- Главный заголовок страницы -->
+        <form id="registerForm"> <!-- Форма для регистрации нового пользователя -->
+            <div class="form-group"> <!-- Группа элементов формы для логина -->
+                <label for="login">Логин:</label> <!-- Метка для поля ввода логина -->
+                <input type="text" id="login" name="login" required> <!-- Поле для ввода текста (логина), обязательное для заполнения -->
+            </div>
+            <div class="form-group"> <!-- Группа элементов формы для пароля -->
+                <label for="password">Пароль:</label> <!-- Метка для поля ввода пароля -->
+                <input type="password" id="password" name="password" required> <!-- Поле для ввода пароля (тип password скрывает символы), обязательное для заполнения -->
+            </div>
+            <button type="submit" class="btn">Зарегистрироваться</button> <!-- Кнопка для отправки формы регистрации -->
+        </form>
+        <p class="link-text">Уже есть аккаунт? <a href="login.html">Войдите</a></p> <!-- Текстовый блок со ссылкой на страницу входа -->
+    </div>
+
+    <script>
+        // Добавляем обработчик события 'submit' для формы с id 'registerForm'
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Предотвращаем стандартное поведение отправки формы (перезагрузку страницы)
+
+            // Собираем данные из полей формы в объект formData
+            const formData = {
+                login: document.getElementById('login').value, // Получаем значение из поля ввода логина
+                password: document.getElementById('password').value // Получаем значение из поля ввода пароля
+            };
+
+            try {
+                // Выполняем асинхронный POST-запрос на сервер для регистрации пользователя
+                const response = await fetch('http://127.0.0.1:8000/register', { // URL эндпоинта для регистрации
+                    method: 'POST', // HTTP-метод POST
+                    headers: {
+                        'Content-Type': 'application/json' // Указываем, что тело запроса в формате JSON
+                    },
+                    credentials: 'include', // Включаем передачу cookie с запросом (важно, если сервер устанавливает cookie после регистрации)
+                    body: JSON.stringify(formData) // Преобразуем объект formData в JSON-строку для отправки
+                });
+
+                // Проверяем, успешен ли ответ сервера (статус код 2xx)
+                if (response.ok) {
+                    window.location.href = 'main.html'; // Если регистрация успешна, перенаправляем пользователя на главную страницу (main.html)
+                } else {
+                    // Если сервер вернул ошибку, пытаемся получить детали ошибки из JSON-ответа
+                    const error = await response.json();
+                    alert(error.detail || 'Ошибка регистрации'); // Показываем сообщение об ошибке пользователю
+                }
+            } catch (error) {
+                // Если произошла ошибка при выполнении запроса (например, сетевая ошибка)
+                console.error('Ошибка:', error); // Выводим ошибку в консоль для отладки
+                alert('Не удалось подключиться к серверу'); // Показываем сообщение об ошибке пользователю
+            }
+        });
+    </script>
+</body>
+</html>

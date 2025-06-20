@@ -1,0 +1,288 @@
+:root {
+    --dark: #0f0f12;
+    --darker: #09090b;
+    --accent: #ff5e57;
+    --accent-light: #ff8a87;
+    --text: #f5f5f7;
+    --text-secondary: #b0b0b9;
+    --glass: rgba(25, 25, 30, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Raleway', sans-serif;
+    background-color: var(--dark);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 450px; 
+    margin: 50px auto;
+    padding: 30px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+
+.container.container--wide {
+    width: 90%; 
+    max-width: 1400px; 
+}
+
+.container > form {
+    max-width: 400px; 
+    margin-left: auto; 
+    margin-right: auto;
+}
+
+h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--text);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+input {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(255, 94, 87, 0.2);
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    background: var(--accent-light);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.link-text {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-secondary);
+}
+
+.link-text a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.link-text a:hover {
+    color: var(--accent-light);
+}
+
+/* Фоновые слои (если используются на всех страницах) */
+.background-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background: linear-gradient(var(--darker), var(--dark));
+}
+
+.blurred-cover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: blur(80px) brightness(0.3);
+    opacity: 0;
+    transition: opacity 1.5s ease, background-image 0.1s ease;
+    z-index: -1;
+}
+
+.blurred-cover.active {
+    opacity: 0.4;
+}
+
+.blurred-cover.fade-out { 
+    opacity: 0;
+}
+
+.books-grid {
+    display: flex; 
+    flex-direction: column; 
+    gap: 25px;
+    padding: 20px 0; 
+}
+
+.book-card {
+    display: flex; 
+    align-items: flex-start; 
+    gap: 20px; 
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px; 
+    padding: 20px;
+    backdrop-filter: blur(5px); 
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    color: var(--text);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+}
+
+.book-card-cover { 
+    width: 100px; 
+    height: 150px; 
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border); 
+    flex-shrink: 0; 
+}
+
+.book-card-info { 
+    flex-grow: 1; 
+    text-align: left; 
+}
+
+.book-card-info h3 {
+    font-family: 'Playfair Display', serif; 
+    font-size: 1.4em; 
+    font-weight: 700; 
+    margin: 0 0 8px 0;
+    color: var(--text);
+    line-height: 1.3;
+}
+
+.book-card-info p {
+    font-size: 0.9em;
+    margin: 4px 0;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.book-card-actions { 
+    display: flex;
+    flex-direction: column;
+    gap: 10px; 
+    align-items: flex-end; 
+    min-width: 160px; 
+    flex-shrink: 0;
+}
+
+.book-card a.btn-details,
+.book-card .btn-remove { 
+    display: inline-block;
+    padding: 8px 15px; 
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    width: 100%; 
+    box-sizing: border-box;
+    cursor: pointer;
+    text-align: center; 
+}
+
+.book-card a.btn-details {
+    background: var(--accent);
+}
+
+.book-card a.btn-details:hover {
+    background: var(--accent-light);
+    transform: translateY(-2px);
+}
+
+.book-card .btn-remove {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+}
+
+.book-card .btn-remove:hover {
+    background: rgba(200, 80, 80, 0.3); 
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.page-actions {
+    margin-top: 30px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 15px; 
+}
+
+.no-books-message {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 40px 0;
+}
+
+.action-btn.added {
+    background: var(--glass-border); 
+    color: var(--text-secondary);
+    cursor: default; 
+    border-color: transparent; 
+}
+
+.action-btn.added svg {
+    fill: var(--text-secondary); 
+}
+
+.action-btn.added:hover {
+    transform: none; 
+    box-shadow: none;
+    background: var(--glass-border); 
+}

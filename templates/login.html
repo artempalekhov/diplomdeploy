@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru"> 
+<head>
+    <meta charset="UTF-8"> <!-- Установка кодировки символов документа на UTF-8, что обеспечивает корректное отображение большинства символов -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Настройка области просмотра (viewport) для адаптивного дизайна: ширина равна ширине устройства, начальный масштаб - 1.0 -->
+    <title>Вход</title> <!-- Заголовок страницы, отображаемый во вкладке браузера -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;500;600&display=swap"> <!-- Подключение внешних шрифтов Playfair Display и Raleway с Google Fonts -->
+    <link rel="stylesheet" href="style.css"> <!-- Подключение файла стилей style.css для оформления страницы -->
+</head>
+<body> <!-- Основное содержимое HTML-документа, видимое пользователю -->
+    <div class="background-layer"></div> <!-- Слой для основного фона страницы, стилизуется в CSS -->
+    <div class="blurred-cover" id="blurredCover"></div> <!-- Слой для размытого фонового изображения, управляется через CSS и JS -->
+    
+    <div class="container"> <!-- Контейнер для центрирования основного контента на странице -->
+        <h1>Вход</h1> <!-- Главный заголовок страницы "Вход" -->
+        <form id="loginForm"> <!-- Форма для ввода данных пользователя для входа, с идентификатором loginForm -->
+            <div class="form-group"> <!-- Группа элементов формы для логина -->
+                <label for="login">Логин:</label> <!-- Метка для поля ввода логина, связана с input по id="login" -->
+                <input type="text" id="login" name="login" required> <!-- Поле для ввода текста (логина), обязательное для заполнения (required) -->
+            </div>
+            <div class="form-group"> <!-- Группа элементов формы для пароля -->
+                <label for="password">Пароль:</label> <!-- Метка для поля ввода пароля, связана с input по id="password" -->
+                <input type="password" id="password" name="password" required> <!-- Поле для ввода пароля (тип password скрывает вводимые символы), обязательное для заполнения (required) -->
+            </div>
+            <button type="submit" class="btn">Войти</button> <!-- Кнопка для отправки формы, тип "submit" -->
+        </form>
+        <p class="link-text">Нет аккаунта? <a href="index.html">Зарегистрируйтесь</a></p> <!-- Текстовый блок со ссылкой на страницу регистрации (index.html) -->
+    </div>
+
+    <script>
+        // Добавляем обработчик события 'submit' для формы с id 'loginForm'
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Предотвращаем стандартное поведение отправки формы (перезагрузку страницы)
+
+            // Собираем данные из полей формы в объект formData
+            const formData = {
+                login: document.getElementById('login').value, // Получаем значение из поля ввода логина
+                password: document.getElementById('password').value // Получаем значение из поля ввода пароля
+            };
+
+            try {
+                // Выполняем асинхронный POST-запрос на сервер для входа пользователя
+                const response = await fetch('http://127.0.0.1:8000/login', { // URL эндпоинта для входа
+                    method: 'POST', // HTTP-метод POST
+                    headers: {
+                        'Content-Type': 'application/json' // Указываем, что тело запроса в формате JSON
+                    },
+                    credentials: 'include', // Включаем передачу cookie с запросом (важно для сессий/токенов)
+                    body: JSON.stringify(formData) // Преобразуем объект formData в JSON-строку для отправки
+                });
+
+                // Проверяем, успешен ли ответ сервера (статус код 2xx)
+                if (response.ok) {
+                    window.location.href = 'main.html'; // Если вход успешен, перенаправляем пользователя на главную страницу (main.html)
+                } else {
+                    // Если сервер вернул ошибку, пытаемся получить детали ошибки из JSON-ответа
+                    const error = await response.json();
+                    alert(error.detail || 'Ошибка входа'); // Показываем сообщение об ошибке пользователю
+                }
+            } catch (error) {
+                // Если произошла ошибка при выполнении запроса (например, сетевая ошибка)
+                console.error('Ошибка:', error); // Выводим ошибку в консоль для отладки
+                alert('Не удалось подключиться к серверу'); // Показываем сообщение об ошибке пользователю
+            }
+        });
+    </script>
+</body>
+</html>
