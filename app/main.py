@@ -28,8 +28,9 @@ app = FastAPI()
 origins = [
     "http://127.0.0.1:5500", # Разрешаем запросы с этого адреса
     "http://localhost:5500", # Разрешаем запросы с этого адреса
-    "https://magical-cascaron-00274b.netlify.app",
-    "https://booklamp.onrender.com/"
+    "https://magical-cascaron-00274b.netlify.app", # Разрешаем запросы с этого адреса
+    "https://booklamp.onrender.com/", # Разрешаем запросы с этого адреса
+    "https://book-lamp.shop"
 
 ]
 

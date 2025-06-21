@@ -549,6 +549,7 @@
     
     async function fetchBook(genre) {
         const response = await fetch(`https://booklamp.onrender.com/random_book?genre=${genre}`);
+
         if (!response.ok) throw new Error('Ошибка загрузки');
         
         const book = await response.json();

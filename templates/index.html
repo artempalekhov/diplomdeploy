@@ -40,7 +40,7 @@
 
             try {
                 // Выполняем асинхронный POST-запрос на сервер для регистрации пользователя
-                const response = await fetch('http://127.0.0.1:8000/register', { // URL эндпоинта для регистрации
+                const response = await fetch('https://booklamp.onrender.com/register', { // URL эндпоинта для регистрации
                     method: 'POST', // HTTP-метод POST
                     headers: {
                         'Content-Type': 'application/json' // Указываем, что тело запроса в формате JSON

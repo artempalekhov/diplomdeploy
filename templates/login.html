@@ -40,7 +40,7 @@
 
             try {
                 // Выполняем асинхронный POST-запрос на сервер для входа пользователя
-                const response = await fetch('http://127.0.0.1:8000/login', { // URL эндпоинта для входа
+                const response = await fetch('https://booklamp.onrender.com/login', { // URL эндпоинта для входа
                     method: 'POST', // HTTP-метод POST
                     headers: {
                         'Content-Type': 'application/json' // Указываем, что тело запроса в формате JSON
